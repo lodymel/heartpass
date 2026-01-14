@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💝 HeartPass
 
-## Getting Started
+*A personalized coupon card with your heart*
 
-First, run the development server:
+HeartPass는 친구, 연인, 가족을 위한 **액션 기반 디지털 쿠폰 카드**를 만드는 무료 웹 앱입니다.
+
+## ✨ 주요 기능
+
+- 🎨 **30+ 액션 기반 쿠폰**: 요리하기, 발 마사지, 영화 보기 등 다양한 쿠폰 타입
+- 🤖 **AI 메시지 생성**: 선택한 쿠폰과 분위기에 맞는 재미있고 따뜻한 메시지 자동 생성
+- 📱 **QR 코드 포함**: 각 카드에 고유한 QR 코드 생성
+- 💾 **다운로드 & 공유**: PNG 이미지로 다운로드하거나 바로 공유
+- 🎁 **평생 유효**: 모든 쿠폰은 평생 유효하며 사용 조건 커스터마이징 가능
+- 📱 **반응형 디자인**: 모바일과 데스크톱 모두에서 완벽하게 작동
+
+## 🚀 시작하기
+
+### 필수 요구사항
+
+- Node.js 18+ 
+- npm 또는 yarn
+- OpenAI API 키 (선택사항 - 없어도 기본 메시지로 작동)
+
+### 설치
+
+1. 저장소 클론 또는 다운로드
+2. 의존성 설치:
+
+```bash
+npm install
+```
+
+3. 환경 변수 설정 (선택사항):
+
+`.env.local` 파일을 생성하고 OpenAI API 키를 추가하세요:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+> **참고**: OpenAI API 키가 없어도 앱은 작동하지만, 기본 메시지만 사용됩니다.
+
+4. 개발 서버 실행:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. 브라우저에서 [http://localhost:3000](http://localhost:3000) 열기
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📖 사용 방법
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **홈 페이지**에서 "카드 만들기 시작하기" 클릭
+2. **5단계로 카드 생성**:
+   - 받는 사람 타입 선택 (친구/연인/가족)
+   - 쿠폰 타입 선택
+   - 분위기 선택 (귀여운/재미있는/진심 어린/이벤트)
+   - 이름 입력 (선택사항)
+   - 사용 조건 설정
+3. **AI 메시지 자동 생성** (편집 가능)
+4. **카드 다운로드 또는 공유**
 
-## Learn More
+## 🛠 기술 스택
 
-To learn more about Next.js, take a look at the following resources:
+- **Next.js 16** - React 프레임워크
+- **TypeScript** - 타입 안정성
+- **Tailwind CSS** - 스타일링
+- **OpenAI API** - AI 메시지 생성
+- **qrcode.react** - QR 코드 생성
+- **html2canvas** - 이미지 다운로드
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📁 프로젝트 구조
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+heartpass/
+├── app/
+│   ├── api/
+│   │   └── ai-message/     # AI 메시지 생성 API
+│   ├── card/               # 카드 미리보기 페이지
+│   ├── create/             # 카드 생성 페이지
+│   ├── layout.tsx          # 루트 레이아웃
+│   └── page.tsx            # 홈 페이지
+├── components/
+│   └── Card.tsx            # 카드 컴포넌트
+├── data/
+│   └── coupons.ts          # 쿠폰 데이터
+├── types/
+│   └── index.ts            # TypeScript 타입 정의
+└── public/                 # 정적 파일
+```
 
-## Deploy on Vercel
+## 🎨 디자인
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **컬러 팔레트**: 핑크/파스텔 톤
+- **스타일**: 깔끔하고 감성적인 미니멀 디자인
+- **애니메이션**: 부드러운 페이드, 떠다니는 하트, 반짝이는 효과
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📝 라이선스
+
+이 프로젝트는 해커톤 프로토타입입니다.
+
+## 🤝 기여
+
+이 프로젝트는 1-2일 해커톤 프로토타입입니다. 피드백과 제안은 언제나 환영합니다!
+
+---
+
+Made with 💝 for special moments
