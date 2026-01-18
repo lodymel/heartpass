@@ -27,9 +27,8 @@ export default function AuthButton({ shouldConfirmNavigation, onNavigationClick 
     }
 
     // Get initial session
-    supabase.auth.getUser().then(({ data }: { data: { user: User | null } }) => {
-      import type { User } from '@/types';
-      setUser(data.user);
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user as User | null);
       setIsLoading(false);
     }).catch(() => {
       setIsLoading(false);
@@ -38,8 +37,8 @@ export default function AuthButton({ shouldConfirmNavigation, onNavigationClick 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser((session?.user as User | null) ?? null);
     });
 
     return () => subscription.unsubscribe();
