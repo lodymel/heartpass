@@ -11,6 +11,7 @@ export function createClient() {
       auth: {
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),
         signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+        signInWithOAuth: () => Promise.resolve({ data: { provider: '', url: '' }, error: { message: 'Supabase not configured' } }),
         signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
         signOut: () => Promise.resolve({ error: null }),
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),

@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import CustomCursor from "@/components/CustomCursor";
+import AppLayout from "@/components/AppLayout";
+import ChatBot from "@/components/ChatBot";
 
-// Inter - Margot Priolet에서 사용하는 산세리프
+// Inter - sans-serif used by Margot Priolet
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -24,7 +27,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} antialiased`}
       >
-        {children}
+        <CustomCursor />
+        <AppLayout>{children}</AppLayout>
+        <ChatBot />
       </body>
     </html>
   );

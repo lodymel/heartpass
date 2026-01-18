@@ -2,106 +2,149 @@
 
 *A personalized coupon card with your heart*
 
-HeartPass는 친구, 연인, 가족을 위한 **액션 기반 디지털 쿠폰 카드**를 만드는 무료 웹 앱입니다.
+HeartPass is a free web app for creating **action-based digital coupon cards** for soulmates, family, partners, and friends. Each HeartPass is designed as a boarding pass, transforming gifts into lovely experiences.
 
-## ✨ 주요 기능
+## ✨ Key Features
 
-- 🎨 **30+ 액션 기반 쿠폰**: 요리하기, 발 마사지, 영화 보기 등 다양한 쿠폰 타입
-- 🤖 **AI 메시지 생성**: 선택한 쿠폰과 분위기에 맞는 재미있고 따뜻한 메시지 자동 생성
-- 📱 **QR 코드 포함**: 각 카드에 고유한 QR 코드 생성
-- 💾 **다운로드 & 공유**: PNG 이미지로 다운로드하거나 바로 공유
-- 🎁 **평생 유효**: 모든 쿠폰은 평생 유효하며 사용 조건 커스터마이징 가능
-- 📱 **반응형 디자인**: 모바일과 데스크톱 모두에서 완벽하게 작동
+- 🎨 **12 Action-Based Coupons(Pass)**: Variety of coupon types including full body massage, coffee & dessert day, movie night, romantic dinner, and more
+- 💌 **Personalized Message Generation**: AI-generated messages based on pass type and mood
+- 🎟 **Boarding Pass Design**: Unique but intuitive ticket-style design that makes receiving a pass feel special
+- 💾 **Download & Share**: Download as PNG image or share via email
+- 🎁 **Flexible Validity**: Lifetime or custom expiry date options
+- 📱 **Responsive Design**: Works on both mobile, tablet and desktop devices
+- 👤 **User Accounts**: Sign up to save and manage your passes
+- 📧 **Email Sending**: Send passes directly to recipients via email
+- 📊 **Pass Management**: Track sent and received passes with status management
 
-## 🚀 시작하기
+## 🚀 Getting Started
 
-### 필수 요구사항
+### Prerequisites
 
-- Node.js 18+ 
-- npm 또는 yarn
-- OpenAI API 키 (선택사항 - 없어도 기본 메시지로 작동)
+- Node.js 18+
+- npm or yarn
+- Supabase account (for authentication and database)
+- Resend account (optional, for email sending)
 
-### 설치
+### Installation
 
-1. 저장소 클론 또는 다운로드
-2. 의존성 설치:
+1. Clone or download the repository
+
+2. Install dependencies:
 
 ```bash
 npm install
 ```
 
-3. 환경 변수 설정 (선택사항):
+3. Set up environment variables:
 
-`.env.local` 파일을 생성하고 OpenAI API 키를 추가하세요:
+Create a `.env.local` file in the root directory:
 
 ```env
-OPENAI_API_KEY=your_openai_api_key_here
+# Supabase (Required)
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Resend (Optional, for email sending)
+RESEND_API_KEY=your_resend_api_key
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# OpenAI (Not currently used - message templates are used instead)
+# OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-> **참고**: OpenAI API 키가 없어도 앱은 작동하지만, 기본 메시지만 사용됩니다.
+> **Note**: The app uses message templates for personalized messages. OpenAI API key is not required.
 
-4. 개발 서버 실행:
+4. Set up Supabase database:
+
+   - Create a Supabase project
+   - Run the schema from `supabase/schema.sql` in your Supabase SQL editor
+
+5. Run the development server:
 
 ```bash
 npm run dev
 ```
 
-5. 브라우저에서 [http://localhost:3000](http://localhost:3000) 열기
+6. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-## 📖 사용 방법
+## 📖 How to Use
 
-1. **홈 페이지**에서 "카드 만들기 시작하기" 클릭
-2. **5단계로 카드 생성**:
-   - 받는 사람 타입 선택 (친구/연인/가족)
-   - 쿠폰 타입 선택
-   - 분위기 선택 (귀여운/재미있는/진심 어린/이벤트)
-   - 이름 입력 (선택사항)
-   - 사용 조건 설정
-3. **AI 메시지 자동 생성** (편집 가능)
-4. **카드 다운로드 또는 공유**
+1. **Create an Account**: Sign up or log in to save your passes
+2. **Start Creating**: Click "BOARDING NOW" from the home page
+3. **Create Your Pass** (5 steps):
+   - Choose recipient type (Friend/Partner/Family)
+   - Select a coupon type from available options
+   - Choose mood (Cute/Fun/Heartfelt/Event)
+   - Enter names (sender and recipient)
+   - Set validity (Lifetime or custom date)
+4. **Generate Message**: Click "Generate with AI" to create a personalized message (editable)
+5. **Save or Send**: Save to "My Pass" or send directly via email
+6. **Manage Passes**: View all sent and received passes in "My Pass" page with status tracking
 
-## 🛠 기술 스택
+## 🛠 Tech Stack
 
-- **Next.js 16** - React 프레임워크
-- **TypeScript** - 타입 안정성
-- **Tailwind CSS** - 스타일링
-- **OpenAI API** - AI 메시지 생성
-- **qrcode.react** - QR 코드 생성
-- **html2canvas** - 이미지 다운로드
+- **Next.js 16** - React framework with App Router
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **Supabase** - Authentication and database
+- **Resend** - Email delivery service
+- **html2canvas** - Image download functionality
+- **date-fns** - Date formatting and parsing
+- **React DatePicker** - Date selection component
 
-## 📁 프로젝트 구조
+## 📁 Project Structure
 
 ```
 heartpass/
 ├── app/
 │   ├── api/
-│   │   └── ai-message/     # AI 메시지 생성 API
-│   ├── card/               # 카드 미리보기 페이지
-│   ├── create/             # 카드 생성 페이지
-│   ├── layout.tsx          # 루트 레이아웃
-│   └── page.tsx            # 홈 페이지
+│   │   ├── ai-message/     # Message generation API
+│   │   ├── chat/           # Chatbot API
+│   │   ├── contact/        # Contact form API
+│   │   └── send-email/     # Email sending API
+│   ├── auth/
+│   │   ├── login/         # Login page
+│   │   └── signup/        # Signup page
+│   ├── card/              # Card view page
+│   ├── create/            # Card creation page
+│   ├── my-cards/          # Pass management page
+│   ├── received/          # Received passes page
+│   ├── sent/              # Sent passes page
+│   ├── profile/           # User profile page
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Home page
 ├── components/
-│   └── Card.tsx            # 카드 컴포넌트
+│   ├── Card.tsx           # Card wrapper component
+│   ├── CSSTicket.tsx      # Ticket UI component
+│   ├── Navigation.tsx     # Global navigation
+│   ├── Footer.tsx         # Footer component
+│   └── ...               # Other components
 ├── data/
-│   └── coupons.ts          # 쿠폰 데이터
+│   ├── coupons.ts         # Coupon definitions
+│   └── message-templates.ts # Message templates
+├── lib/
+│   └── supabase/          # Supabase client setup
 ├── types/
-│   └── index.ts            # TypeScript 타입 정의
-└── public/                 # 정적 파일
+│   └── index.ts           # TypeScript type definitions
+├── hooks/
+│   └── useIsMobile.ts     # Mobile detection hook
+└── public/                # Static files
 ```
 
-## 🎨 디자인
+## 🎨 Design
 
-- **컬러 팔레트**: 핑크/파스텔 톤
-- **스타일**: 깔끔하고 감성적인 미니멀 디자인
-- **애니메이션**: 부드러운 페이드, 떠다니는 하트, 반짝이는 효과
+- **Color Palette**: Cream background (#FFFEEF) with red accent (#f20e0e)
+- **Style**: Clean, minimal design inspired by boarding pass aesthetics
+- **Typography**: Custom font (Jenny) for headings, Inter for body text
+- **Layout**: Responsive design optimized for both mobile and desktop
 
-## 📝 라이선스
+## 📝 License
 
-이 프로젝트는 해커톤 프로토타입입니다.
+MIT License
 
-## 🤝 기여
+## 🤝 Feedback
 
-이 프로젝트는 1-2일 해커톤 프로토타입입니다. 피드백과 제안은 언제나 환영합니다!
+We welcome feedback and suggestions to improve HeartPass! If you have ideas or encounter any issues, please feel free to reach out.
 
 ---
 

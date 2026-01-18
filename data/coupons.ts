@@ -27,7 +27,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cook-for-you',
-    title: 'Let Me Cook for You',
+    title: 'A Private Chef Experience',
     description: 'Just tell me what you want to eat. I am your personal chef today 😋',
     emoji: '👩‍🍳',
   },
@@ -51,19 +51,19 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'write-letter',
-    title: 'Write Me a Letter',
+    title: 'A Handwritten Letter',
     description: 'Handwritten, heartfelt. 1000 plus words of love and thoughts 💌',
     emoji: '✍️',
   },
   {
     id: 'buy-me-this',
-    title: 'Buy Me This',
+    title: 'A Thoughtful Gift',
     description: 'That one thing you have been eyeing. Yours, no questions asked 😍',
     emoji: '🎁',
   },
   {
     id: 'pack-lunchbox',
-    title: 'Pack Me a Lunchbox',
+    title: 'A Lunch Surprise',
     description: 'Homemade lunchbox. With a little video showing the making process 🎥',
     emoji: '🥪',
   },

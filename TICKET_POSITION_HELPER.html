@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Position Helper</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 40px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+        .ticket-container {
+            position: relative;
+            display: inline-block;
+            border: 2px dashed #ccc;
+            margin: 20px 0;
+        }
+        .ticket-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        .overlay {
+            position: absolute;
+            border: 2px solid red;
+            background: rgba(255, 0, 0, 0.1);
+            pointer-events: none;
+        }
+        .overlay-label {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            background: red;
+            color: white;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .controls {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        .control-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input {
+            width: 100px;
+            padding: 5px;
+            margin-right: 10px;
+        }
+        .code-output {
+            margin-top: 30px;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎫 Ticket Position Helper</h1>
+        <p>Upload a ticket image and adjust the position of each element by dragging.</p>
+        
+        <div class="ticket-container" id="ticketContainer">
+            <img id="ticketImage" class="ticket-image" src="" alt="Ticket Image">
+            
+            <!-- FROM Overlay -->
+            <div class="overlay" id="fromOverlay">
+                <div class="overlay-label">FROM</div>
+            </div>
+            
+            <!-- TO Overlay -->
+            <div class="overlay" id="toOverlay">
+                <div class="overlay-label">TO</div>
+            </div>
+            
+            <!-- Message Overlay -->
+            <div class="overlay" id="messageOverlay">
+                <div class="overlay-label">MESSAGE</div>
+            </div>
+            
+            <!-- ISSUED Overlay -->
+            <div class="overlay" id="issuedOverlay">
+                <div class="overlay-label">ISSUED</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h3>Position Adjustment</h3>
+            
+            <div class="control-group">
+                <h4>FROM</h4>
+                <label>Top: <input type="number" id="fromTop" value="15" step="0.1">%</label>
+                <label>Left: <input type="number" id="fromLeft" value="10" step="0.1">%</label>
+                <label>Width: <input type="number" id="fromWidth" value="35" step="0.1">%</label>
+            </div>
+            
+            <div class="control-group">
+                <h4>TO</h4>
+                <label>Top: <input type="number" id="toTop" value="15" step="0.1">%</label>
+                <label>Right: <input type="number" id="toRight" value="10" step="0.1">%</label>
+                <label>Width: <input type="number" id="toWidth" value="35" step="0.1">%</label>
+            </div>
+            
+            <div class="control-group">
+                <h4>MESSAGE</h4>
+                <label>Top: <input type="number" id="messageTop" value="45" step="0.1">%</label>
+                <label>Left: <input type="number" id="messageLeft" value="8" step="0.1">%</label>
+                <label>Right: <input type="number" id="messageRight" value="8" step="0.1">%</label>
+                <label>Width: <input type="number" id="messageWidth" value="84" step="0.1">%</label>
+                <label>Min Height: <input type="number" id="messageMinHeight" value="120" step="1">px</label>
+                <label>Padding: <input type="text" id="messagePadding" value="16px 20px"></label>
+            </div>
+            
+            <div class="control-group">
+                <h4>ISSUED</h4>
+                <label>Top: <input type="number" id="issuedTop" value="8" step="0.1">%</label>
+                <label>Right: <input type="number" id="issuedRight" value="8" step="0.1">%</label>
+            </div>
+            
+            <button onclick="updateOverlays()">Update Position</button>
+            <button onclick="generateCode()">Generate Code</button>
+        </div>
+        
+        <div class="code-output" id="codeOutput">
+            코드가 여기에 표시됩니다...
+        </div>
+    </div>
+    
+    <script>
+        // Image upload
+        const ticketImage = document.getElementById('ticketImage');
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.style.display = 'none';
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    ticketImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        document.body.appendChild(fileInput);
+        ticketImage.onclick = () => fileInput.click();
+        ticketImage.style.cursor = 'pointer';
+        ticketImage.title = 'Click to upload ticket image';
+        
+        function updateOverlays() {
+            const ticketWidth = ticketImage.offsetWidth || ticketImage.naturalWidth;
+            const ticketHeight = ticketImage.offsetHeight || ticketImage.naturalHeight;
+            
+            // FROM
+            const fromTop = parseFloat(document.getElementById('fromTop').value);
+            const fromLeft = parseFloat(document.getElementById('fromLeft').value);
+            const fromWidth = parseFloat(document.getElementById('fromWidth').value);
+            const fromOverlay = document.getElementById('fromOverlay');
+            fromOverlay.style.top = (ticketHeight * fromTop / 100) + 'px';
+            fromOverlay.style.left = (ticketWidth * fromLeft / 100) + 'px';
+            fromOverlay.style.width = (ticketWidth * fromWidth / 100) + 'px';
+            fromOverlay.style.height = '30px';
+            
+            // TO
+            const toTop = parseFloat(document.getElementById('toTop').value);
+            const toRight = parseFloat(document.getElementById('toRight').value);
+            const toWidth = parseFloat(document.getElementById('toWidth').value);
+            const toOverlay = document.getElementById('toOverlay');
+            toOverlay.style.top = (ticketHeight * toTop / 100) + 'px';
+            toOverlay.style.right = (ticketWidth * toRight / 100) + 'px';
+            toOverlay.style.width = (ticketWidth * toWidth / 100) + 'px';
+            toOverlay.style.height = '30px';
+            
+            // MESSAGE
+            const messageTop = parseFloat(document.getElementById('messageTop').value);
+            const messageLeft = parseFloat(document.getElementById('messageLeft').value);
+            const messageRight = parseFloat(document.getElementById('messageRight').value);
+            const messageWidth = parseFloat(document.getElementById('messageWidth').value);
+            const messageMinHeight = parseFloat(document.getElementById('messageMinHeight').value);
+            const messageOverlay = document.getElementById('messageOverlay');
+            messageOverlay.style.top = (ticketHeight * messageTop / 100) + 'px';
+            messageOverlay.style.left = (ticketWidth * messageLeft / 100) + 'px';
+            messageOverlay.style.right = (ticketWidth * messageRight / 100) + 'px';
+            messageOverlay.style.width = (ticketWidth * messageWidth / 100) + 'px';
+            messageOverlay.style.minHeight = messageMinHeight + 'px';
+            
+            // ISSUED
+            const issuedTop = parseFloat(document.getElementById('issuedTop').value);
+            const issuedRight = parseFloat(document.getElementById('issuedRight').value);
+            const issuedOverlay = document.getElementById('issuedOverlay');
+            issuedOverlay.style.top = (ticketHeight * issuedTop / 100) + 'px';
+            issuedOverlay.style.right = (ticketWidth * issuedRight / 100) + 'px';
+            issuedOverlay.style.width = '150px';
+            issuedOverlay.style.height = '20px';
+        }
+        
+        function generateCode() {
+            const code = `'movie-night': {
+  from: { 
+    top: '${document.getElementById('fromTop').value}%', 
+    left: '${document.getElementById('fromLeft').value}%', 
+    width: '${document.getElementById('fromWidth').value}%' 
+  },
+  to: { 
+    top: '${document.getElementById('toTop').value}%', 
+    right: '${document.getElementById('toRight').value}%', 
+    width: '${document.getElementById('toWidth').value}%' 
+  },
+  message: { 
+    top: '${document.getElementById('messageTop').value}%', 
+    left: '${document.getElementById('messageLeft').value}%', 
+    right: '${document.getElementById('messageRight').value}%', 
+    width: '${document.getElementById('messageWidth').value}%', 
+    minHeight: '${document.getElementById('messageMinHeight').value}px', 
+    padding: '${document.getElementById('messagePadding').value}' 
+  },
+  issued: { 
+    top: '${document.getElementById('issuedTop').value}%', 
+    right: '${document.getElementById('issuedRight').value}%' 
+  },
+},`;
+            
+            document.getElementById('codeOutput').textContent = code;
+        }
+        
+        // Auto-update on input change
+        ['fromTop', 'fromLeft', 'fromWidth', 'toTop', 'toRight', 'toWidth', 
+         'messageTop', 'messageLeft', 'messageRight', 'messageWidth', 'messageMinHeight',
+         'issuedTop', 'issuedRight'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateOverlays);
+        });
+        
+        // Initialize on image load
+        ticketImage.onload = () => {
+            updateOverlays();
+        };
+    </script>
+</body>
+</html>

@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS cards (
   recipient_name TEXT,
   sender_name TEXT,
   usage_condition TEXT,
+  validity_type TEXT DEFAULT 'lifetime',
+  validity_date DATE,
   message TEXT,
   issue_date DATE DEFAULT CURRENT_DATE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,

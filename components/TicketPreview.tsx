@@ -9,7 +9,7 @@ interface TicketPreviewProps {
 
 export default function TicketPreview({ from, to, title, description }: TicketPreviewProps) {
   return (
-    <div className="bg-white ticket-border rounded-lg shadow-lg relative overflow-hidden max-w-sm mx-auto">
+    <div className="bg-white ticket-border rounded-lg relative overflow-hidden max-w-sm mx-auto" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}>
       {/* Top Gradient Stripe */}
       <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#ff6b9d] via-[#9b59b6] to-[#4a90e2]"></div>
       

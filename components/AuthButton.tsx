@@ -1,12 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
-export default function AuthButton() {
+interface AuthButtonProps {
+  shouldConfirmNavigation?: (href: string) => boolean;
+  onNavigationClick?: (href: string, e: React.MouseEvent) => boolean | void;
+}
+
+export default function AuthButton({ shouldConfirmNavigation, onNavigationClick }: AuthButtonProps = {}) {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -48,24 +54,50 @@ export default function AuthButton() {
     return null;
   }
 
+  const handleClick = (href: string, e: React.MouseEvent) => {
+    // If already on My Pass page, scroll to top instead of navigating
+    if (href === '/my-cards' && pathname === '/my-cards') {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (shouldConfirmNavigation && shouldConfirmNavigation(href)) {
+      e.preventDefault();
+      if (onNavigationClick) {
+        const result = onNavigationClick(href, e);
+        if (result === false) {
+          e.preventDefault();
+        }
+      }
+    } else if (onNavigationClick) {
+      const result = onNavigationClick(href, e);
+      if (result === false) {
+        e.preventDefault();
+      }
+    }
+  };
+
   if (user) {
     return (
       <>
-        <Link href="/my-cards" className="nav-link">
-          MY CARDS
-        </Link>
-        <button
-          onClick={handleLogout}
+        <Link 
+          href="/my-cards" 
           className="nav-link"
+          onClick={(e) => handleClick('/my-cards', e)}
         >
-          LOG OUT
-        </button>
+          MY PASS
+        </Link>
       </>
     );
   }
 
   return (
-    <Link href="/auth/login" className="nav-link">
+    <Link 
+      href="/auth/login" 
+      className="nav-link"
+      onClick={(e) => handleClick('/auth/login', e)}
+    >
       SIGN IN
     </Link>
   );
