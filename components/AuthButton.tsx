@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { User } from '@/types';
+import type { User } from '@/types';
 
 interface AuthButtonProps {
   shouldConfirmNavigation?: (href: string) => boolean;
@@ -14,7 +14,7 @@ interface AuthButtonProps {
 export default function AuthButton({ shouldConfirmNavigation, onNavigationClick }: AuthButtonProps = {}) {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -27,9 +27,8 @@ export default function AuthButton({ shouldConfirmNavigation, onNavigationClick 
     }
     
     // Get initial session
-    supabase.auth.getUser().then((response) => {
-      const user: User | null = response.data.user;
-      setUser(user);
+    supabase.auth.getUser().then(({ data }: { data: { user: User | null } }) => {
+      setUser(data.user);
       setIsLoading(false);
     }).catch(() => {
       setIsLoading(false);
