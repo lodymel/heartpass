@@ -1,37 +1,40 @@
-name: Deploy to GitHub Pages
+name: Deploy
 
 on:
   push:
-    branches: [ main ]
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+    branches: [main]
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: '20'
-      
-      - name: Install dependencies
-        run: npm install
-      
-      - name: Build
-        run: npm run build
-      
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - run: npm install
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./.next/static
-          cname: false
-          force_orphan: true
+          name: nextjs-build
+          path: .next/static
+  
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+          path: build
+      - uses: actions/checkout@v3
+        with:
+          ref: gh-pages
+      - run: |
+          rm -rf *
+          mv ../build/* .
+          git add .
+          git config user.name "Deploy Bot"
+          git config user.email "deploy@bot.com"
+          git commit -m "Deploy" || true
+          git push
