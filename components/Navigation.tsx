@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { User } from '@/types';
 import AuthButton from '@/components/AuthButton';
 import NotificationButton from '@/components/NotificationButton';
 import SignOutButton from '@/components/SignOutButton';
@@ -290,7 +291,8 @@ function AuthButtonMobileWrapper({
       return;
     }
     
-    supabase.auth.getUser().then(({ data: { user } }: any) => {
+    supabase.auth.getUser().then((response) => {
+      const user: User | null = response.data.user;
       setUser(user);
       setIsLoading(false);
     }).catch(() => {
@@ -383,7 +385,8 @@ function NotificationButtonMobile({
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }: any) => {
+    supabase.auth.getUser().then((response) => {
+      const user: User | null = response.data.user;
       if (user) {
         setUser(user);
         // Load notification count
@@ -448,7 +451,8 @@ function SignOutButtonMobile({
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }: any) => {
+    supabase.auth.getUser().then((response) => {
+      const user: User | null = response.data.user;
       setUser(user);
     });
   }, []);

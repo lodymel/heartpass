@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { User } from '@/types';
 
 interface AuthButtonProps {
   shouldConfirmNavigation?: (href: string) => boolean;
@@ -26,7 +27,8 @@ export default function AuthButton({ shouldConfirmNavigation, onNavigationClick 
     }
     
     // Get initial session
-    supabase.auth.getUser().then(({ data: { user } }: { data: { user: any } }) => {
+    supabase.auth.getUser().then((response) => {
+      const user: User | null = response.data.user;
       setUser(user);
       setIsLoading(false);
     }).catch(() => {
