@@ -24,19 +24,36 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
       - uses: actions/download-artifact@v4
         with:
           name: nextjs-build
-          path: build
-      - uses: actions/checkout@v3
-        with:
-          ref: gh-pages
-      - run: |
-          rm -rf *
-          mv ../build/* .
+          path: out
+      
+      - name: Create gh-pages branch if needed
+        run: |
+          if ! git rev-parse --verify gh-pages > /dev/null 2>&1; then
+            git checkout --orphan gh-pages
+            git rm -rf .
+            git commit --allow-empty -m "Initial gh-pages commit"
+          else
+            git checkout gh-pages
+          fi
+      
+      - name: Deploy files
+        run: |
+          git checkout gh-pages
+          rm -rf .github .next app components data hooks lib public supabase types *.* 2>/dev/null || true
+          cp -r out/* .
           git add .
-          git config user.name "Deploy Bot"
-          git config user.email "deploy@bot.com"
-          git commit -m "Deploy" || true
-          git push
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git commit -m "Deploy: ${{ github.sha }}" || true
+          git push origin gh-pages
