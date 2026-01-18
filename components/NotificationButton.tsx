@@ -62,7 +62,7 @@ export default function NotificationButton() {
         .limit(10);
 
       if (!error && receivedCards) {
-        const notifs: Notification[] = receivedCards.map(card => ({
+        const notifs: Notification[] = receivedCards.map((card: any) => ({
           id: card.id,
           card_id: card.id,
           type: 'received',
@@ -94,7 +94,7 @@ export default function NotificationButton() {
           table: 'cards',
           filter: `recipient_email=eq.${user.email}`,
         },
-        (payload) => {
+        (payload: any) => {
           console.log('Real-time update:', payload);
           loadNotifications(); // Reload on any change
         }

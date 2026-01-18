@@ -252,14 +252,12 @@ export default function Navigation({ shouldConfirmNavigation, onNavigationClick 
                 <AuthButtonMobileWrapper 
                   shouldConfirmNavigation={shouldConfirmNavigation}
                   onNavigationClick={onNavigationClick}
-                  onMenuClose={() => setIsMobileMenuOpen(false)}
                 />
                 
                 {/* Sign Out - Mobile Version */}
                 <SignOutButtonMobile 
                   shouldConfirmNavigation={shouldConfirmNavigation}
                   onNavigationClick={onNavigationClick}
-                  onMenuClose={() => setIsMobileMenuOpen(false)}
                 />
               </div>
             </div>
@@ -309,20 +307,11 @@ function AuthButtonMobileWrapper({
   if (isLoading) return null;
 
   const handleClick = (href: string, e: React.MouseEvent) => {
-    // If already on My Pass page, scroll to top instead of navigating
-    if (href === '/my-cards' && pathname === '/my-cards') {
-      e.preventDefault();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      if (onMenuClose) onMenuClose();
-      return;
-    }
-
     if (shouldConfirmNavigation && shouldConfirmNavigation(href)) {
       e.preventDefault();
       if (onNavigationClick) {
         const result = onNavigationClick(href, e);
         if (result !== false) {
-          if (onMenuClose) onMenuClose();
           router.push(href);
         }
       }
@@ -334,7 +323,6 @@ function AuthButtonMobileWrapper({
           return;
         }
       }
-      if (onMenuClose) onMenuClose();
       router.push(href);
     }
   };
