@@ -88,7 +88,6 @@ export default function NotificationCenter() {
           filter: `recipient_email=eq.${user.email}`,
         },
         (payload) => {
-          console.log('Real-time update:', payload);
           loadNotifications(); // Reload on any change
         }
       )

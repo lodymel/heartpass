@@ -95,7 +95,6 @@ export default function NotificationButton() {
           filter: `recipient_email=eq.${user.email}`,
         },
         (payload: any) => {
-          console.log('Real-time update:', payload);
           loadNotifications(); // Reload on any change
         }
       )
