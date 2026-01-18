@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+  pages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,44 +20,8 @@ jobs:
       - run: npm run build
         env:
           RESEND_API_KEY: placeholder_key
-      - uses: actions/upload-artifact@v4
+      - uses: peaceiris/actions-gh-pages@v3
         with:
-          name: nextjs-build
-          path: .next/static
-  
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-      
-      - uses: actions/download-artifact@v4
-        with:
-          name: nextjs-build
-          path: out
-      
-      - name: Create gh-pages branch if needed
-        run: |
-          if ! git rev-parse --verify gh-pages > /dev/null 2>&1; then
-            git checkout --orphan gh-pages
-            git rm -rf .
-            git commit --allow-empty -m "Initial gh-pages commit"
-          else
-            git checkout gh-pages
-          fi
-      
-      - name: Deploy files
-        run: |
-          git config user.email "deploy@github.com"
-          git config user.name "GitHub Actions"
-          git checkout gh-pages
-          rm -rf .github .next app components data hooks lib public supabase types *.* 2>/dev/null || true
-          cp -r out/* .
-          git add .
-          git commit -m "Deploy: ${{ github.sha }}" || true
-          git push origin gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./.next/static
+          force_orphan: true
