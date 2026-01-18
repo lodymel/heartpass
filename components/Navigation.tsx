@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { User } from '@/types';
+import type { User } from '@/types';
 import AuthButton from '@/components/AuthButton';
 import NotificationButton from '@/components/NotificationButton';
 import SignOutButton from '@/components/SignOutButton';
@@ -291,9 +291,8 @@ function AuthButtonMobileWrapper({
       return;
     }
     
-    supabase.auth.getUser().then((response) => {
-      const user: User | null = response.data.user;
-      setUser(user);
+    supabase.auth.getUser().then(({ data }: { data: { user: User | null } }) => {
+      setUser(data.user);
       setIsLoading(false);
     }).catch(() => {
       setIsLoading(false);
@@ -379,21 +378,20 @@ function NotificationButtonMobile({
   onNavigationClick?: (href: string, e: React.MouseEvent) => boolean | void;
   onMenuClose?: () => void;
 }) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then((response) => {
-      const user: User | null = response.data.user;
-      if (user) {
-        setUser(user);
+    supabase.auth.getUser().then(({ data }: { data: { user: User | null } }) => {
+      if (data.user) {
+        setUser(data.user);
         // Load notification count
         supabase
           .from('cards')
           .select('id', { count: 'exact' })
-          .or(`recipient_user_id.eq.${user.id},recipient_email.eq.${user.email}`)
+          .or(`recipient_user_id.eq.${data.user.id},recipient_email.eq.${data.user.email}`)
           .in('status', ['pending'])
           .then(({ count }: any) => {
             setUnreadCount(count || 0);
@@ -446,14 +444,13 @@ function SignOutButtonMobile({
   shouldConfirmNavigation?: (href: string) => boolean;
   onNavigationClick?: (href: string, e: React.MouseEvent) => boolean | void;
 }) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then((response) => {
-      const user: User | null = response.data.user;
-      setUser(user);
+    supabase.auth.getUser().then(({ data }: { data: { user: User | null } }) => {
+      setUser(data.user);
     });
   }, []);
 

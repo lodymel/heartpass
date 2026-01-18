@@ -3,17 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { User } from '@/types';
+import type { User } from '@/types';
 
 export default function SignOutButton() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then((response) => {
-      const user: User | null = response.data.user;
-      setUser(user);
+    supabase.auth.getUser().then(({ data }: { data: { user: User | null } }) => {
+      setUser(data.user);
     });
   }, []);
 

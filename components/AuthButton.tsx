@@ -19,13 +19,13 @@ export default function AuthButton({ shouldConfirmNavigation, onNavigationClick 
 
   useEffect(() => {
     const supabase = createClient();
-    
+
     // Check if Supabase is configured
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       setIsLoading(false);
       return;
     }
-    
+
     // Get initial session
     supabase.auth.getUser().then(({ data }: { data: { user: User | null } }) => {
       setUser(data.user);
@@ -79,27 +79,15 @@ export default function AuthButton({ shouldConfirmNavigation, onNavigationClick 
     }
   };
 
-  if (user) {
-    return (
-      <>
-        <Link 
-          href="/my-cards" 
-          className="nav-link"
-          onClick={(e) => handleClick('/my-cards', e)}
-        >
-          MY PASS
-        </Link>
-      </>
-    );
-  }
-
   return (
-    <Link 
-      href="/auth/login" 
-      className="nav-link"
-      onClick={(e) => handleClick('/auth/login', e)}
-    >
-      SIGN IN
-    </Link>
+    <div>
+      {user ? (
+        <button onClick={handleLogout}>Sign Out</button>
+      ) : (
+        <Link href="/auth/login" onClick={(e) => handleClick('/auth/login', e)}>
+          Sign In
+        </Link>
+      )}
+    </div>
   );
 }
