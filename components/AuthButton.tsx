@@ -26,7 +26,7 @@ export default function AuthButton({ shouldConfirmNavigation, onNavigationClick 
     }
     
     // Get initial session
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }: { data: { user: any } }) => {
       setUser(user);
       setIsLoading(false);
     }).catch(() => {
