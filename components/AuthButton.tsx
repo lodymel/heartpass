@@ -79,15 +79,27 @@ export default function AuthButton({ shouldConfirmNavigation, onNavigationClick 
     }
   };
 
-  return (
-    <div>
-      {user ? (
-        <button onClick={handleLogout}>Sign Out</button>
-      ) : (
-        <Link href="/auth/login" onClick={(e) => handleClick('/auth/login', e)}>
-          Sign In
+  if (user) {
+    return (
+      <>
+        <Link 
+          href="/my-cards" 
+          className="nav-link"
+          onClick={(e) => handleClick('/my-cards', e)}
+        >
+          MY PASS
         </Link>
-      )}
-    </div>
+      </>
+    );
+  }
+
+  return (
+    <Link 
+      href="/auth/login" 
+      className="nav-link"
+      onClick={(e) => handleClick('/auth/login', e)}
+    >
+      SIGN IN
+    </Link>
   );
 }
