@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -35,17 +36,38 @@ export default function SignupPage() {
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
 
       if (error) throw error;
 
-      router.push('/my-cards');
+      // Check if email confirmation is required
+      if (data.user && !data.session) {
+        // Email confirmation required - redirect to login with message
+        router.push('/auth/login?message=Please check your email to confirm your account before signing in.');
+        router.refresh();
+        return;
+      }
+
+      // Check for redirect parameter, default to /my-cards
+      const redirectTo = searchParams.get('redirect') || '/my-cards';
+      router.push(redirectTo);
       router.refresh();
     } catch (error: any) {
-      setError(error.message || 'Failed to sign up');
+      // User-friendly error messages
+      let friendlyMessage = error.message || 'Failed to sign up';
+      
+      if (error.message?.toLowerCase().includes('already registered')) {
+        friendlyMessage = 'This email is already registered. Please sign in instead.';
+      } else if (error.message?.toLowerCase().includes('invalid email')) {
+        friendlyMessage = 'Please enter a valid email address.';
+      } else if (error.message?.toLowerCase().includes('weak password')) {
+        friendlyMessage = 'Please choose a stronger password (at least 6 characters).';
+      }
+      
+      setError(friendlyMessage);
     } finally {
       setIsLoading(false);
     }

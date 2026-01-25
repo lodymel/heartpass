@@ -8,17 +8,18 @@ export default function Home() {
       {/* Top Navigation */}
       <Navigation />
 
-      <div className="relative z-10 container mx-auto px-0 w-full flex-1">
+      <div className="relative z-10 w-full flex-1">
         {/* Header - Margot Priolet Style - Centered */}
-        <header className="flex flex-col items-center justify-center text-center pt-32 md:pt-40 mb-24 md:mb-32">
-          <h1 className="jenny-title text-9xl md:text-[12rem] lg:text-[14rem] mb-6" style={{
+        <header className="flex flex-col items-center justify-center text-center pt-32 md:pt-40 mb-24 md:mb-32 px-6 md:px-8">
+          <h1 className="jenny-title md:text-[12rem] lg:text-[14rem] mb-6" style={{
             fontWeight: 300,
             letterSpacing: '-0.025em',
-            lineHeight: 1
+            lineHeight: 1,
+            fontSize: 'clamp(5rem, 24vw, 12rem)'
           }}>
             HeartPass
           </h1>
-          <p className="regular_paragraph max-w-3xl" style={{ fontSize: '1.155em', fontWeight: 500, letterSpacing: '-0.06em', transform: 'scaleX(0.95)' }}>
+          <p className="regular_paragraph max-w-3xl px-2 md:px-0" style={{ fontSize: '1.155em', fontWeight: 500, letterSpacing: '-0.06em', transform: 'scaleX(0.95)' }}>
             Hop on the love flight!<br />
             Design a boarding pass and gift someone<br />
             a sky full of love, LOLs, and tiny surprises.
@@ -26,7 +27,7 @@ export default function Home() {
         </header>
 
         {/* Ticket Preview - Minimal Preview Style */}
-        <div className="max-w-md mx-auto mb-24">
+        <div className="max-w-md mx-auto mb-24 px-6 md:px-0">
           <div className="relative" style={{
             background: '#FFFEEF',
             border: '1px solid #e5e5e5',
@@ -126,7 +127,14 @@ export default function Home() {
 
         {/* CTA Section */}
         <div className="text-center mb-24">
-          <Link href="/create" className="y2k-button inline-block text-base md:text-lg">
+          <Link
+            href="/create"
+            className="y2k-button inline-block text-base md:text-lg
+              font-sans uppercase text-[#fffeef] bg-[#f20e0e] border border-[#f20e0e]
+              px-3 py-1.5 font-medium no-underline transition-all duration-200 relative overflow-hidden
+              md:bg-[#f20e0e] md:border-[#f20e0e] md:text-[#fffeef]"
+            style={{ letterSpacing: 0 }}
+          >
             CREATE A HEARTPASS
           </Link>
         </div>

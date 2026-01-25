@@ -27,6 +27,7 @@ export default function NotificationButton() {
   const [user, setUser] = useState<any>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -34,15 +35,33 @@ export default function NotificationButton() {
   }, []);
 
   useEffect(() => {
+    const supabase = createClient();
+    
     const loadUser = async () => {
-      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUser(user);
       }
     };
     loadUser();
-  }, []);
+
+    // Listen for auth changes to handle sign out smoothly
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user && user) {
+        // User signing out - trigger smooth transition
+        setIsTransitioning(true);
+        setIsOpen(false); // Close notification panel if open
+        setTimeout(() => {
+          setUser(null);
+          setIsTransitioning(false);
+        }, 200);
+      } else {
+        setUser(session?.user ?? null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -129,13 +148,17 @@ export default function NotificationButton() {
     router.push(`/card?id=${notification.card_id}`);
   };
 
+  // Don't render if no user and not transitioning
+  if (!user && !isTransitioning) {
+    return null;
+  }
+
   return (
     <>
       {/* Notification Button - Nav Link Style (without underline) */}
       <button
         onClick={() => {
-          if (!user) {
-            router.push('/auth/login');
+          if (!user || isTransitioning) {
             return;
           }
           setIsOpen(!isOpen);
@@ -152,7 +175,7 @@ export default function NotificationButton() {
           }
         }}
         style={{
-          cursor: 'pointer',
+          cursor: isTransitioning ? 'default' : 'pointer',
           fontFamily: 'var(--font-sans)',
           fontSize: '1rem',
           fontWeight: 400,
@@ -163,6 +186,10 @@ export default function NotificationButton() {
           background: 'transparent',
           border: 'none',
           padding: 0,
+          opacity: isTransitioning ? 0 : 1,
+          transform: isTransitioning ? 'translateX(10px)' : 'translateX(0)',
+          transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
+          pointerEvents: isTransitioning ? 'none' : 'auto',
         }}
         aria-label="Notifications"
       >

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -16,6 +16,8 @@ export default function AuthButton({ shouldConfirmNavigation, onNavigationClick 
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const wasLoggedIn = useRef(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -29,6 +31,7 @@ export default function AuthButton({ shouldConfirmNavigation, onNavigationClick 
     // Get initial session
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user as User | null);
+      wasLoggedIn.current = !!data.user;
       setIsLoading(false);
     }).catch(() => {
       setIsLoading(false);
@@ -38,7 +41,20 @@ export default function AuthButton({ shouldConfirmNavigation, onNavigationClick 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser((session?.user as User | null) ?? null);
+      const newUser = (session?.user as User | null) ?? null;
+      
+      // If user just signed out, trigger transition
+      if (wasLoggedIn.current && !newUser) {
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setUser(newUser);
+          setIsTransitioning(false);
+        }, 200);
+      } else {
+        setUser(newUser);
+      }
+      
+      wasLoggedIn.current = !!newUser;
     });
 
     return () => subscription.unsubscribe();
@@ -79,17 +95,21 @@ export default function AuthButton({ shouldConfirmNavigation, onNavigationClick 
     }
   };
 
-  if (user) {
+  if (user || isTransitioning) {
     return (
-      <>
-        <Link 
-          href="/my-cards" 
-          className="nav-link"
-          onClick={(e) => handleClick('/my-cards', e)}
-        >
-          MY PASS
-        </Link>
-      </>
+      <Link 
+        href="/my-cards" 
+        className="nav-link"
+        onClick={(e) => handleClick('/my-cards', e)}
+        style={{
+          opacity: isTransitioning ? 0 : 1,
+          transform: isTransitioning ? 'translateX(10px)' : 'translateX(0)',
+          transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
+          pointerEvents: isTransitioning ? 'none' : 'auto',
+        }}
+      >
+        MY PASS
+      </Link>
     );
   }
 

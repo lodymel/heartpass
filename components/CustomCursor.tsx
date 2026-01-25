@@ -6,15 +6,20 @@ export default function CustomCursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const rafRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     // Check if device has fine pointer (not touch)
     const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
+    const isTouchDevice = 'ontouchstart' in window;
     
-    if (!hasFinePointer) {
+    if (!hasFinePointer || isTouchDevice) {
       return; // Don't show custom cursor on touch devices
     }
+
+    // Show cursor only after mount (prevents hydration mismatch)
+    setIsVisible(true);
 
     const updateCursor = (e: MouseEvent) => {
       if (rafRef.current) {
@@ -56,9 +61,8 @@ export default function CustomCursor() {
     };
   }, []);
 
-  // Hide cursor on touch devices
-  const isTouchDevice = typeof window !== 'undefined' && 'ontouchstart' in window;
-  if (isTouchDevice) {
+  // Don't render until client-side mount (prevents hydration mismatch)
+  if (!isVisible) {
     return null;
   }
 

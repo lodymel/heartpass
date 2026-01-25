@@ -50,6 +50,96 @@ export default function MyCardsPage() {
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const [sentTabRef, setSentTabRef] = useState<HTMLButtonElement | null>(null);
   const [receivedTabRef, setReceivedTabRef] = useState<HTMLButtonElement | null>(null);
+  const [pendingCardModal, setPendingCardModal] = useState<{ isOpen: boolean; cardData: any | null }>({
+    isOpen: false,
+    cardData: null,
+  });
+  const [isSavingPendingCard, setIsSavingPendingCard] = useState(false);
+
+  // Check for pending card data from sessionStorage (created before login)
+  useEffect(() => {
+    if (!user || typeof window === 'undefined') return;
+    
+    const pendingData = sessionStorage.getItem('pendingHeartPass');
+    if (pendingData) {
+      try {
+        const cardData = JSON.parse(pendingData);
+        setPendingCardModal({ isOpen: true, cardData });
+      } catch (e) {
+        // Invalid data, remove it
+        sessionStorage.removeItem('pendingHeartPass');
+      }
+    }
+  }, [user]);
+
+  // Save pending card to database
+  const savePendingCard = async () => {
+    if (!pendingCardModal.cardData || !user) return;
+    
+    setIsSavingPendingCard(true);
+    try {
+      const supabase = createClient();
+      const cardData = pendingCardModal.cardData;
+      
+      const insertData: any = {
+        user_id: user.id,
+        sender_email: user.email,
+        recipient_type: cardData.recipientType || 'loved-one',
+        coupon_type: cardData.couponType,
+        mood: cardData.mood,
+        recipient_name: cardData.recipientName,
+        sender_name: cardData.senderName,
+        usage_condition: cardData.usageCondition,
+        message: cardData.message || 'Let\'s create special moments together! 💝',
+        validity_type: cardData.validityType || 'lifetime',
+        validity_date: cardData.validityDate || null,
+        issue_date: new Date().toISOString().split('T')[0],
+        status: cardData.recipientEmail ? 'pending' : 'active',
+      };
+      
+      if (cardData.recipientEmail) {
+        insertData.recipient_email = cardData.recipientEmail;
+      }
+      
+      const { data, error } = await supabase
+        .from('cards')
+        .insert(insertData)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Clear sessionStorage
+      sessionStorage.removeItem('pendingHeartPass');
+      
+      // Close modal and reload cards
+      setPendingCardModal({ isOpen: false, cardData: null });
+      await loadCards();
+      
+      setAlertModal({
+        isOpen: true,
+        title: 'Pass saved! 💝',
+        message: cardData.recipientEmail 
+          ? `Your HeartPass has been saved and sent to ${cardData.recipientEmail}!`
+          : 'Your HeartPass has been saved to your collection!',
+      });
+    } catch (error: any) {
+      console.error('Failed to save pending card:', error);
+      setAlertModal({
+        isOpen: true,
+        title: 'Save failed',
+        message: 'Failed to save your HeartPass. Please try again.',
+      });
+    } finally {
+      setIsSavingPendingCard(false);
+    }
+  };
+
+  // Dismiss pending card without saving
+  const dismissPendingCard = () => {
+    sessionStorage.removeItem('pendingHeartPass');
+    setPendingCardModal({ isOpen: false, cardData: null });
+  };
 
   // Load cards function - extracted to be reusable
     const loadCards = async () => {
@@ -492,7 +582,7 @@ export default function MyCardsPage() {
         <div className="max-w-7xl mx-auto px-4">
           {/* Header */}
           <div className="mb-12 text-center">
-            <h1 className="jenny-title text-8xl md:text-9xl lg:text-[10rem] mb-4" style={{
+            <h1 className="jenny-title text-8xl md:text-9xl lg:text-[10rem] mb-6 md:mb-8" style={{
               fontWeight: 300,
               letterSpacing: '-0.025em',
               lineHeight: 1
@@ -668,12 +758,31 @@ export default function MyCardsPage() {
             <>
               {filteredCards.length === 0 ? (
             <div className="text-center py-20">
-                  <p className="regular_paragraph mb-6">
-                    {activeFilter === 'all' ? 'No passes yet' : activeFilter === 'not-sent' ? 'No passes without email' : `No ${activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1)} passes`}
-                  </p>
-              <Link href="/create" className="y2k-button inline-block">
-                    CREATE YOUR FIRST PASS
-              </Link>
+                  {cards.length === 0 ? (
+                    <>
+                      <p className="regular_paragraph mb-2" style={{ fontSize: '1.1rem' }}>
+                        You haven't created any passes yet
+                      </p>
+                      <p className="regular_paragraph mb-6" style={{ color: '#999', textTransform: 'none', fontSize: '0.9rem' }}>
+                        Create your first HeartPass and share it with someone special!
+                      </p>
+                      <Link href="/create" className="y2k-button inline-block">
+                        CREATE YOUR FIRST PASS
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <p className="regular_paragraph mb-2" style={{ fontSize: '1.1rem' }}>
+                        No {activeFilter === 'not-sent' ? 'unsent' : activeFilter} passes
+                      </p>
+                      <p className="regular_paragraph mb-6" style={{ color: '#999', textTransform: 'none', fontSize: '0.9rem' }}>
+                        Try a different filter or create a new pass
+                      </p>
+                      <Link href="/create" className="y2k-button inline-block">
+                        CREATE A NEW PASS
+                      </Link>
+                    </>
+                  )}
             </div>
           ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -1149,9 +1258,26 @@ export default function MyCardsPage() {
             <>
               {filteredCards.length === 0 ? (
                 <div className="text-center py-20">
-                  <p className="regular_paragraph mb-6">
-                    {receivedCards.length === 0 ? 'No received passes yet' : activeFilter === 'all' ? 'No saved passes' : `No ${activeFilter} passes`}
-                  </p>
+                  {receivedCards.length === 0 ? (
+                    <>
+                      <p className="regular_paragraph mb-2" style={{ fontSize: '1.1rem' }}>
+                        No received passes yet
+                      </p>
+                      <p className="regular_paragraph mb-6" style={{ color: '#999', textTransform: 'none', fontSize: '0.9rem' }}>
+                        When someone sends you a HeartPass, it will appear here.
+                        <br />Share your email with friends to receive passes!
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="regular_paragraph mb-2" style={{ fontSize: '1.1rem' }}>
+                        No {activeFilter} passes
+                      </p>
+                      <p className="regular_paragraph mb-6" style={{ color: '#999', textTransform: 'none', fontSize: '0.9rem' }}>
+                        Try a different filter to see other passes
+                      </p>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -1595,6 +1721,82 @@ export default function MyCardsPage() {
         message={alertModal.message}
         onClose={() => setAlertModal({ isOpen: false, title: '', message: '' })}
       />
+
+      {/* Pending Card Recovery Modal */}
+      {pendingCardModal.isOpen && pendingCardModal.cardData && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(4px)',
+          }}
+        >
+          <div
+            className="relative max-w-md w-full mx-4"
+            style={{
+              background: '#FFFEEF',
+              border: '1px solid #e5e5e5',
+              padding: '40px 32px',
+            }}
+          >
+            <h2
+              className="jenny-title text-3xl mb-4"
+              style={{
+                fontWeight: 300,
+                letterSpacing: '-0.025em',
+                lineHeight: 1.1,
+                color: '#f20e0e',
+              }}
+            >
+              Welcome back! 💝
+            </h2>
+            <p
+              className="regular_paragraph mb-6"
+              style={{
+                fontSize: '0.9rem',
+                lineHeight: 1.6,
+                color: '#666666',
+                fontWeight: 400,
+              }}
+            >
+              We found a HeartPass you created before signing in. Would you like to save it to your account?
+            </p>
+            
+            {/* Card Preview */}
+            <div className="mb-6 p-4" style={{ background: '#fff', border: '1px solid #e5e5e5' }}>
+              <div className="flex justify-between items-center mb-2">
+                <span className="regular_paragraph text-xs" style={{ color: '#f20e0e' }}>FROM</span>
+                <span className="regular_paragraph text-xs" style={{ color: '#f20e0e' }}>TO</span>
+              </div>
+              <div className="flex justify-between items-center mb-3">
+                <span className="regular_paragraph text-sm" style={{ color: '#666' }}>{pendingCardModal.cardData.senderName}</span>
+                <span className="regular_paragraph text-sm" style={{ color: '#666' }}>{pendingCardModal.cardData.recipientName}</span>
+              </div>
+              <div className="jenny-title text-xl" style={{ color: '#f20e0e' }}>
+                {coupons.find(c => c.id === pendingCardModal.cardData.couponType)?.title || pendingCardModal.cardData.couponType}
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={dismissPendingCard}
+                className="y2k-button bg-white flex-1"
+                style={{ color: '#f20e0e' }}
+                disabled={isSavingPendingCard}
+              >
+                Discard
+              </button>
+              <button
+                onClick={savePendingCard}
+                className="y2k-button flex-1"
+                disabled={isSavingPendingCard}
+              >
+                {isSavingPendingCard ? 'Saving...' : 'Save Pass'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <Footer />

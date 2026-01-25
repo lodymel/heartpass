@@ -18,7 +18,32 @@ interface NavigationProps {
 
 export default function Navigation({ shouldConfirmNavigation, onNavigationClick }: NavigationProps = {}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isUserLoaded, setIsUserLoaded] = useState(false);
   const pathname = usePathname();
+
+  // Load user state once in parent - share with children for instant menu rendering
+  useEffect(() => {
+    const supabase = createClient();
+    
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      setIsUserLoaded(true);
+      return;
+    }
+    
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user as User | null);
+      setIsUserLoaded(true);
+    }).catch(() => {
+      setIsUserLoaded(true);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user as User | null ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -68,6 +93,8 @@ export default function Navigation({ shouldConfirmNavigation, onNavigationClick 
               position: 'relative',
               zIndex: 100,
               color: '#f20e0e',
+              display: 'flex',
+              alignItems: 'center',
             }}
             onClick={(e) => {
               // Close mobile menu if open
@@ -107,24 +134,33 @@ export default function Navigation({ shouldConfirmNavigation, onNavigationClick 
               height: 'fit-content',
               display: 'inline-block',
             }}>
-              {/* HeartPass Text */}
-              <span className="jenny-title text-2xl md:text-3xl nav-logo-text" style={{
+              {/* Mobile: Heart Icon Only */}
+              <img 
+                src="/heart.svg" 
+                alt="HeartPass" 
+                className="nav-logo-mobile-icon"
+                style={{
+                  width: '28px',
+                  height: '28px',
+                }}
+              />
+              {/* Desktop: HeartPass Text */}
+              <span className="jenny-title text-3xl nav-logo-text nav-logo-desktop-text" style={{
                 fontWeight: 400,
                 letterSpacing: '-0.025em',
                 lineHeight: 1,
                 whiteSpace: 'nowrap',
                 color: '#f20e0e',
-                display: 'block',
                 position: 'relative',
                 zIndex: 101,
               }}>
                 HeartPass
               </span>
-              {/* Heart SVG - Hidden by default, shown on hover */}
+              {/* Desktop: Heart SVG - Hidden by default, shown on hover */}
               <img 
                 src="/heart.svg" 
                 alt="Heart" 
-                className="nav-logo-heart"
+                className="nav-logo-heart nav-logo-desktop-heart"
                 style={{
                   position: 'absolute',
                   top: '50%',
@@ -140,7 +176,12 @@ export default function Navigation({ shouldConfirmNavigation, onNavigationClick 
           </Link>
 
           {/* Desktop Navigation - Always visible on md and up */}
-          <div className="hidden md:flex items-center gap-6 lg:gap-8">
+          <div 
+            className="hidden md:flex items-center gap-6 lg:gap-8"
+            style={{
+              transition: 'all 0.3s ease-out',
+            }}
+          >
             <AuthButton 
               shouldConfirmNavigation={shouldConfirmNavigation}
               onNavigationClick={onNavigationClick}
@@ -168,14 +209,26 @@ export default function Navigation({ shouldConfirmNavigation, onNavigationClick 
           </div>
 
           {/* Mobile/Tablet: CTA Button + Notification + Hamburger */}
-          <div className="flex md:hidden items-center gap-4">
-            {/* CTA Button - Always visible on mobile */}
-            <Link href="/create" className="nav-button-primary text-sm px-3 py-2">
+          <div className="flex md:hidden items-center gap-2">
+            {/* CTA Button - Ghost style on mobile for visual balance */}
+            <Link 
+              href="/create" 
+              className="text-sm font-medium uppercase"
+              style={{
+                color: '#f20e0e',
+                padding: '8px 12px',
+                border: '1px solid #f20e0e',
+                background: 'transparent',
+                fontFamily: 'var(--font-sans)',
+                letterSpacing: '0.02em',
+                transition: 'all 0.2s ease',
+              }}
+            >
               BOARDING NOW
             </Link>
             
             {/* Notification Button - Mobile */}
-            <div style={{ marginLeft: '12px', marginRight: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ marginLeft: '8px', marginRight: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <NotificationButton />
             </div>
             
@@ -246,19 +299,23 @@ export default function Navigation({ shouldConfirmNavigation, onNavigationClick 
               justifyContent: 'center',
             }}
           >
-            {/* Menu Content */}
+            {/* Menu Content - All items render instantly using shared user state */}
             <div className="container mx-auto px-4 w-full">
               <div className="flex flex-col gap-8 items-center">
                 {/* Auth Button - Mobile Version */}
                 <AuthButtonMobileWrapper 
+                  user={user}
+                  isUserLoaded={isUserLoaded}
                   shouldConfirmNavigation={shouldConfirmNavigation}
                   onNavigationClick={onNavigationClick}
                 />
                 
                 {/* Sign Out - Mobile Version */}
                 <SignOutButtonMobile 
+                  user={user}
                   shouldConfirmNavigation={shouldConfirmNavigation}
                   onNavigationClick={onNavigationClick}
+                  onMenuClose={() => setIsMobileMenuOpen(false)}
                 />
               </div>
             </div>
@@ -269,43 +326,21 @@ export default function Navigation({ shouldConfirmNavigation, onNavigationClick 
   );
 }
 
-// Mobile versions of auth components
+// Mobile versions of auth components - use shared user state for instant rendering
 function AuthButtonMobileWrapper({ 
+  user,
+  isUserLoaded,
   shouldConfirmNavigation, 
   onNavigationClick,
-  onMenuClose
 }: { 
+  user: User | null;
+  isUserLoaded: boolean;
   shouldConfirmNavigation?: (href: string) => boolean;
   onNavigationClick?: (href: string, e: React.MouseEvent) => boolean | void;
-  onMenuClose?: () => void;
 }) {
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const supabase = createClient();
-    
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      setIsLoading(false);
-      return;
-    }
-    
-    supabase.auth.getUser().then(({ data }: { data: { user: User | null } }) => {
-      setUser(data.user);
-      setIsLoading(false);
-    }).catch(() => {
-      setIsLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (isLoading) return null;
+  if (!isUserLoaded) return null;
 
   const handleClick = (href: string, e: React.MouseEvent) => {
     if (shouldConfirmNavigation && shouldConfirmNavigation(href)) {
@@ -438,25 +473,19 @@ function NotificationButtonMobile({
 }
 
 function SignOutButtonMobile({ 
+  user,
   shouldConfirmNavigation, 
-  onNavigationClick 
+  onNavigationClick,
+  onMenuClose,
 }: { 
+  user: User | null;
   shouldConfirmNavigation?: (href: string) => boolean;
   onNavigationClick?: (href: string, e: React.MouseEvent) => boolean | void;
+  onMenuClose?: () => void;
 }) {
-  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }: { data: { user: User | null } }) => {
-      setUser(data.user);
-    });
-  }, []);
-
   const handleLogout = async (e: React.MouseEvent) => {
-    const supabase = createClient();
-    
     // Check if navigation should be confirmed before logout
     if (shouldConfirmNavigation && shouldConfirmNavigation('/')) {
       e.preventDefault();
@@ -472,6 +501,13 @@ function SignOutButtonMobile({
       }
     }
     
+    // Close menu immediately and sign out simultaneously
+    // Big tech standard: instant response, no visible delay
+    if (onMenuClose) {
+      onMenuClose();
+    }
+    
+    const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/');
     router.refresh();

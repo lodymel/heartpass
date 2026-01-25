@@ -1,18 +1,28 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+
+  // Check for message in URL (e.g., email confirmation required)
+  useEffect(() => {
+    const urlMessage = searchParams.get('message');
+    if (urlMessage) {
+      setMessage(urlMessage);
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +38,9 @@ export default function LoginPage() {
 
       if (error) throw error;
 
-      router.push('/my-cards');
+      // Check for redirect parameter, default to /my-cards
+      const redirectTo = searchParams.get('redirect') || '/my-cards';
+      router.push(redirectTo);
       router.refresh();
     } catch (error: any) {
       // Convert technical error messages to user-friendly ones
@@ -118,6 +130,16 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
+            {message && (
+              <div className="p-4 bg-blue-50 border border-blue-200 text-blue-600 text-sm rounded-none" style={{
+                fontFamily: 'var(--font-sans), sans-serif',
+                lineHeight: '1.6',
+                letterSpacing: '-0.01em',
+                textTransform: 'none',
+              }}>
+                {message}
+              </div>
+            )}
             {error && (
               <div className="p-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-none" style={{
                 fontFamily: 'var(--font-sans), sans-serif',

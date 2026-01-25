@@ -34,6 +34,7 @@ function CreatePageContent() {
   const [isLoadingCard, setIsLoadingCard] = useState(false); // Track card loading state
   const [isGeneratingMessage, setIsGeneratingMessage] = useState(false); // Track message generation
   const [isNavigating, setIsNavigating] = useState(false); // Prevent duplicate navigation
+  const [isSaving, setIsSaving] = useState(false); // Track save operation
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
@@ -274,6 +275,7 @@ function CreatePageContent() {
 
       // If user is logged in, save to database
       if (user && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        setIsSaving(true);
         try {
           const supabase = createClient();
           
@@ -353,26 +355,30 @@ function CreatePageContent() {
           }
 
           if (error) {
-            console.error('Error details:', JSON.stringify(error, null, 2));
-            console.error('Error code:', error.code);
-            console.error('Error message:', error.message);
-            console.error('Error hint:', error.hint);
-            console.error('🔍 DEBUG - Error context:', {
-              'insertData.user_id': insertData.user_id,
-              'user.id (state)': user.id,
-              'currentUser.id': currentUser?.id,
-              'isEditing': isEditing,
-              'editCardId': editCardId,
-            });
+            // Log technical details for debugging (only visible in console)
+            console.error('Save error:', error);
             
-            // Show user-friendly error message
+            // Determine user-friendly message based on error type
+            let friendlyMessage = 'Something went wrong while saving your HeartPass.';
+            
+            if (error.code === '23505' || error.message?.includes('duplicate')) {
+              friendlyMessage = 'This pass already exists. Please try creating a new one.';
+            } else if (error.code === '42501' || error.message?.includes('permission') || error.message?.includes('policy')) {
+              friendlyMessage = 'You don\'t have permission to perform this action. Please try signing out and back in.';
+            } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+              friendlyMessage = 'Network error. Please check your internet connection and try again.';
+            } else if (error.message?.includes('timeout')) {
+              friendlyMessage = 'The request took too long. Please try again.';
+            }
+            
             setAlertModal({
               isOpen: true,
-              title: isEditing ? 'Update failed ❌' : 'Save failed ❌',
-              message: `Failed to ${isEditing ? 'update' : 'save'} your HeartPass.\n\nError: ${error.message || 'Unknown error'}\n\nCode: ${error.code || 'N/A'}\n\nPlease check the console (F12) for details.`,
-              redirectTo: undefined, // Don't redirect on error
+              title: isEditing ? 'Update failed' : 'Save failed',
+              message: `${friendlyMessage}\n\nPlease try again. If the problem persists, try refreshing the page.`,
+              redirectTo: undefined,
             });
-            return; // Don't continue if save failed
+            setIsSaving(false);
+            return;
           }
           
           // If email is provided, send email notification
@@ -445,9 +451,11 @@ function CreatePageContent() {
             // This also allows non-logged-in users to view the ticket
             router.push(`/card?id=${data.id}`);
           }
+          setIsSaving(false);
           return;
         } catch (error) {
           console.error('Failed to save card:', error);
+          setIsSaving(false);
           setAlertModal({
             isOpen: true,
             title: 'Save failed',
@@ -457,7 +465,19 @@ function CreatePageContent() {
         }
       }
 
-      // Fallback: Use URL params for non-logged-in users
+      // Fallback: For non-logged-in users, save to sessionStorage and redirect
+      // This allows data to persist through the login flow
+      const cardDataWithEmail = {
+        ...cardData,
+        message: cardData.message || '',
+        recipientEmail: recipientEmail || '',
+      };
+      
+      // Save to sessionStorage for recovery after login
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('pendingHeartPass', JSON.stringify(cardDataWithEmail));
+      }
+      
       const params = new URLSearchParams({
         ...cardData,
         message: cardData.message || '',
@@ -1618,16 +1638,25 @@ function CreatePageContent() {
                   onClick={handleBack} 
                   className="y2k-button flex-1 bg-white"
                   style={{ color: '#f20e0e' }}
+                  disabled={isSaving}
                 >
                   BACK
                 </button>
                 {recipientEmail ? (
-                  <button onClick={handleContinue} className="y2k-button flex-1 text-base">
-                    SEND NOW
+                  <button 
+                    onClick={handleContinue} 
+                    className="y2k-button flex-1 text-base"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? 'SENDING...' : 'SEND NOW'}
                   </button>
                 ) : (
-                  <button onClick={handleContinue} className="y2k-button flex-1 text-base">
-                    CREATE FIRST
+                  <button 
+                    onClick={handleContinue} 
+                    className="y2k-button flex-1 text-base"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? 'CREATING...' : 'CREATE FIRST'}
                   </button>
                 )}
               </div>

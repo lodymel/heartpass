@@ -303,13 +303,36 @@ body {
 .nav-logo-text {
   transition: opacity 0.3s ease;
   opacity: 1;
-  display: block;
 }
 
 .nav-logo-heart {
   transition: opacity 0.3s ease;
   opacity: 0;
-  display: block;
+}
+
+/* Mobile: Show heart icon, hide text */
+.nav-logo-mobile-icon {
+  display: block !important;
+}
+
+.nav-logo-desktop-text,
+.nav-logo-desktop-heart {
+  display: none !important;
+}
+
+/* Desktop: Show text, hide mobile icon */
+@media (min-width: 768px) {
+  .nav-logo-mobile-icon {
+    display: none !important;
+  }
+  
+  .nav-logo-desktop-text {
+    display: block !important;
+  }
+  
+  .nav-logo-desktop-heart {
+    display: block !important;
+  }
 }
 
 @media (hover: hover) {

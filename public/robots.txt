@@ -1,0 +1,9 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://heartpass.net/sitemap.xml
+
+# Disallow admin/auth pages from indexing
+Disallow: /auth/

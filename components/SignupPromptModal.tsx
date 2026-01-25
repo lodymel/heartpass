@@ -95,21 +95,38 @@ export default function SignupPromptModal({
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="y2k-button bg-white flex-1"
-            style={{ color: '#f20e0e' }}
-          >
-            Maybe Later
-          </button>
-          <Link
-            href="/auth/signup"
-            className="y2k-button flex-1 text-center"
-            onClick={onClose}
-          >
-            Sign Up Free
-          </Link>
+        <div className="space-y-3">
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="y2k-button bg-white flex-1"
+              style={{ color: '#f20e0e' }}
+            >
+              Maybe Later
+            </button>
+            <Link
+              href="/auth/signup"
+              className="y2k-button flex-1 text-center"
+              onClick={onClose}
+            >
+              Sign Up Free
+            </Link>
+          </div>
+          
+          {/* Sign In option for existing users */}
+          <div className="text-center pt-2">
+            <span className="regular_paragraph text-xs" style={{ color: '#999' }}>
+              Already have an account?{' '}
+            </span>
+            <Link
+              href="/auth/login"
+              className="regular_paragraph text-xs font-medium"
+              style={{ color: '#f20e0e', textDecoration: 'underline' }}
+              onClick={onClose}
+            >
+              Sign In
+            </Link>
+          </div>
         </div>
       </div>
     </div>
