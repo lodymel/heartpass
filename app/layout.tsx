@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     description: "Create action-based digital coupon cards for friends, partners, or family. Personalized, shareable, and powered by AI.",
     images: [
       {
-        url: "/heart.svg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "HeartPass - Share love with personalized coupons",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "HeartPass - A personalized coupon card with your heart",
     description: "Create action-based digital coupon cards for friends, partners, or family. Personalized, shareable, and powered by AI.",
-    images: ["/heart.svg"],
+    images: ["/og-image.png"],
     creator: "@heartpass",
   },
   robots: {
